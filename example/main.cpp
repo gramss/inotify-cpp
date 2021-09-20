@@ -35,6 +35,7 @@ int main(int argc, char** argv)
     auto events = { Event::open | Event::is_dir, // some events occur in combinations
                     Event::access,
                     Event::create,
+                    Event::create | Event::is_dir,
                     Event::modify,
                     Event::remove,
                     Event::move };

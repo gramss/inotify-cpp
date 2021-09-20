@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
-project(inotify-cpp)
+project(inotify-cpp CXX)
+
+find_package(ament_cmake REQUIRED)
+
 
 if(NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)

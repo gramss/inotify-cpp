@@ -33,20 +33,39 @@ macro(configure_target target)
         target_include_directories(${target} PUBLIC
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                 $<INSTALL_INTERFACE:include>)
-        target_link_libraries(${target} PUBLIC inotify-filesystem-adapter)
 
 endmacro(configure_target target)
+
+macro(configure_target_interface_lib target)
+
+        install(TARGETS ${target} 
+                EXPORT ${target}Targets
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+        install(EXPORT ${target}Targets
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${target}
+                FILE ${target}Targets.cmake
+                NAMESPACE ${LIB_COMPANY}::)
+
+        target_include_directories(${target} INTERFACE
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                $<INSTALL_INTERFACE:include>)
+
+endmacro(configure_target_interface_lib)
 
 # add export for adapter
 install(TARGETS inotify-filesystem-adapter EXPORT inotify-filesystem-adapterExport)
 install(EXPORT inotify-filesystem-adapterExport DESTINATION ${CMAKE_INSTALL_LIBDIR})
+configure_target_interface_lib(inotify-filesystem-adapter)
 
 # library definition
 if(BUILD_SHARED_LIBS)
-        add_library(${LIB_NAME}-shared SHARED ${LIB_SRCS} ${LIB_HEADER})
-        configure_target(${LIB_NAME}-shared)
+        add_library(${LIB_NAME} SHARED ${LIB_SRCS} ${LIB_HEADER})
+        configure_target(${LIB_NAME})
         if(NOT BUILD_STATIC_LIBS)
-                add_library(${LIB_COMPANY}::${LIB_NAME} ALIAS ${LIB_NAME}-shared)
+                add_library(${LIB_COMPANY}::${LIB_NAME} ALIAS ${LIB_NAME})
         endif()
 endif()
 
@@ -59,7 +78,7 @@ if(BUILD_STATIC_LIBS)
 endif()
 
 if(BUILD_SHARED_LIBS AND BUILD_STATIC_LIBS)
-        add_library(${LIB_COMPANY}::${LIB_NAME} ALIAS ${LIB_NAME}-shared)
+        add_library(${LIB_COMPANY}::${LIB_NAME} ALIAS ${LIB_NAME})
 endif()
 
 install(DIRECTORY ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_NAME} DESTINATION include)
@@ -67,5 +86,38 @@ install(DIRECTORY ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_NAME} DESTINATION include)
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(${LIB_NAME}ConfigVersion.cmake
         COMPATIBILITY SameMajorVersion)
-install(FILES ${LIB_NAME}Config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+configure_package_config_file(
+        "${PROJECT_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in"
+        "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}
+        )
+install(FILES "${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
+        "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+
+# install(FILES ${LIB_NAME}Config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+#         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+
+# ament_export_libraries(${LIB_NAME})
+
+#################
+set(LIB_NAME inotify-filesystem-adapter)
+write_basic_package_version_file(${LIB_NAME}ConfigVersion.cmake
+        COMPATIBILITY SameMajorVersion)
+configure_package_config_file(
+        "${PROJECT_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in"
+        "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}
+        )
+# install(FILES ${LIB_NAME}Config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+#         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+install(EXPORT ${LIB_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+install(FILES "${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
+              "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
+
+# ament_export_include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# #ament_export_dependencies(${dependencies})
+# ament_package()
