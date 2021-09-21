@@ -3,7 +3,7 @@
 <package format="3">
   <name>inotify-cpp</name>
   <version>0.0.1</version>
-  <description>Using inotify event watcher to register new file based .so plugins for the bt.</description>
+  <description>inotify cpp wrapper</description>
   <maintainer email="flo.gramss@gmail.com">Florian Gramß</maintainer>
   <license>Apache-2.0</license>
 
